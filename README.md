@@ -20,7 +20,7 @@
 Choosing *which configuration to run* is only half of hyperparameter tuning; the other half
 is *how to run many of them without wasting compute*. Evaluating every configuration to full
 budget is enormously wasteful, because most are clearly losing after a fraction of their
-training. This project builds the **orchestration** side of tuning **from first principles**:
+training. This project builds the **orchestration** side of tuning **from scratch**:
 multi-fidelity scheduling that stops losers early, a parallel runner, multi-objective
 optimization for conflicting goals, and post-hoc importance analysis - all with **zero runtime
 dependencies**. It is the systems-and-decisions complement to a sampler library.
