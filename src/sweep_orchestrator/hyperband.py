@@ -21,6 +21,23 @@ from sweep_orchestrator.types import Candidate, Configuration, Objective
 ConfigurationSampler = Callable[[int], Sequence[Configuration]]
 
 
+def _floor_log(value: int, base: int) -> int:
+    """Return ``floor(log_base(value))`` using integer arithmetic.
+
+    ``math.log`` returns values like ``4.999999999999999`` for exact powers such
+    as ``log(243, 3)``, and ``math.floor`` then yields one less than the correct
+    exponent. That silently dropped Hyperband's most aggressive bracket for
+    canonical inputs (``R = eta ** k``). Counting integer powers avoids the error.
+    """
+
+    exponent = 0
+    power = base
+    while power <= value:
+        exponent += 1
+        power *= base
+    return exponent
+
+
 @dataclass(frozen=True)
 class HyperbandResult:
     """The outcome of a Hyperband run across all brackets."""
@@ -43,7 +60,7 @@ def hyperband(
     if max_resource < 1:
         raise ValueError("max_resource must be at least 1")
 
-    s_max = math.floor(math.log(max_resource, eta))
+    s_max = _floor_log(max_resource, eta)
     brackets: list[BracketResult] = []
     total_resource = 0
 
