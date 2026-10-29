@@ -1,34 +1,33 @@
 # Evaluation Report - Sweep Orchestrator
 
-> Reproduce everything here with `make evaluation`. Report mean ± 95% confidence interval over N seeds.
+> Reproduce with `python -m sweep_orchestrator evaluate`. Deterministic and offline.
 
 ## Setup
-- **Task / dataset:** name, size, split.
-- **Metrics:** definition of each metric and why it's the right one.
-- **Graders:** exact-match / model-graded (which model, prompt) / human.
-- **Baselines:** what you compare against.
-- **Seeds:** list. **Hardware:** e.g., 1×A100 80GB. **Cost:** $X. **Runtime:** Yh.
 
-## Headline results
+- **Problem:** the bundled learning-curve sweep with a known optimum.
+- **Configurations:** 27 sampled learning-rate and depth settings.
+- **Strategies:** full evaluation (no pruning), median pruning, successive halving.
+- **Metrics:** best final loss found and total resource (step-evaluations) spent.
 
-| Metric | This project | Baseline | SOTA / ref | Δ vs baseline |
-|---|---:|---:|---:|---:|
-| Primary (↑) | **0.00 ± 0.00** | 0.00 | 0.00 | +0.00 |
-| Latency p95 (ms, ↓) | **0** | 0 | - | - |
-| Cost / 1k ($, ↓) | **0.00** | 0.00 | - | - |
+## Results
 
-## Ablations
+| Strategy | best loss | resource | savings |
+|---|---:|---:|---:|
+| full (no pruning) | 0.2021 | 243 | 1.00x |
+| median pruning | 0.2021 | 90 | 2.70x |
+| successive halving | 0.2021 | 81 | 3.00x |
 
-| Variant | Metric | Δ | Notes |
-|---|---:|---:|---|
-| Full | 0.00 | - | reference |
-| - component X | 0.00 | −0.00 | shows X matters |
+(At 81 configurations the savings grow to 2.87x and 3.00x; see `benchmarks/benchmark.py`.)
 
-## LLM-as-judge validation (if used)
-- Agreement with human labels (Cohen's κ / accuracy), bias controls, sample size.
+## Interpretation
 
-## Error analysis
-- Top failure categories with counts and representative examples.
+Every strategy finds the same optimal configuration (final loss 0.2021, matching the
+ground-truth best), but median pruning and successive halving reach it at roughly a third of
+the compute by stopping clearly-losing trials before they consume their full budget. This is
+the central claim of multi-fidelity tuning, measured directly: identical solution quality at a
+fraction of the cost. The saving grows with the number of configurations, because more losers
+can be pruned early.
 
 ## Reproducibility
-- Exact command, configuration hash, dataset version, W&B/MLflow run URL.
+
+Sampling and single-worker execution are deterministic; the numbers regenerate exactly.
