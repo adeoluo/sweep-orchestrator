@@ -1,27 +1,39 @@
-# Model / System Card - Sweep Orchestrator
+# System Card - Sweep Orchestrator
 
 ## Overview
-- **What it is:** 1 - 2 sentences.
-- **Base model(s):** e.g., Claude 3.5 Sonnet / GPT-4o / Llama-3-8B / from-scratch.
-- **Version & date:**
+
+- **What it is:** a hyperparameter sweep orchestrator - multi-fidelity scheduling, parallel
+  early-stopping, multi-objective Pareto optimization, and importance analysis.
+- **What it is not:** a sampler. It schedules, prunes, and analyzes trials; proposing
+  configurations is the complementary concern (see the hyperparameter-optimizer project).
+- **Version:** 0.1.0.
 
 ## Intended use
-- **Primary use cases:**
-- **Primary users:**
+
+- **Primary use cases:** running many configurations efficiently, trading off conflicting
+  objectives, and understanding which hyperparameters mattered.
+- **Primary users:** engineers and researchers tuning models or systems at scale.
 
 ## Out-of-scope / prohibited use
-- Where this should **not** be used, and why.
+
+- The parallel runner overlaps evaluations in one process; cross-machine execution needs a
+  transport.
+- The bundled problem is a learning-curve simulation, not a real training run.
 
 ## Performance
-- Summary of key metrics (link to [`EVALUATION_REPORT.md`](EVALUATION_REPORT.md)).
-- Known performance disparities across inputs / subgroups.
 
-## Risks & limitations
-- Failure modes, biases, hallucination behavior, brittleness.
-- **Dual-use / misuse considerations.**
+See the README: all strategies find the optimum, but pruning and successive halving reach it at
+about a third of the compute.
+
+## Risks and limitations
+
+- Multi-fidelity assumes intermediate values rank configurations.
+- Importance is a single-parameter decomposition without interaction terms.
 
 ## Safety mitigations
-- Guardrails, filtering, human-in-the-loop, abstention behavior.
+
+- Deterministic single-worker mode; bounded request sizes in the service.
 
 ## Environmental / cost footprint
-- Compute used; approximate cost / energy where relevant.
+
+The project's purpose is to reduce compute; it is itself negligible and in-memory.

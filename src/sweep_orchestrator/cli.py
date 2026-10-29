@@ -41,6 +41,12 @@ def _cmd_pareto(_: argparse.Namespace) -> None:
     print(f"Dominated configurations: {sorted(dominated)}")
 
 
+def _cmd_serve(args: argparse.Namespace) -> None:
+    from sweep_orchestrator.service import serve
+
+    serve(host=args.host, port=args.port)
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="sweep-orchestrator", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -53,10 +59,15 @@ def main(argv: list[str] | None = None) -> None:
 
     sub.add_parser("pareto", help="show a Pareto front over two objectives")
 
+    serve = sub.add_parser("serve", help="start the HTTP sweep service")
+    serve.add_argument("--host", default="127.0.0.1")
+    serve.add_argument("--port", type=int, default=8000)
+
     handlers = {
         "evaluate": _cmd_evaluate,
         "importance": _cmd_importance,
         "pareto": _cmd_pareto,
+        "serve": _cmd_serve,
     }
     args = parser.parse_args(argv)
     handlers[args.command](args)
