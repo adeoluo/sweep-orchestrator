@@ -15,6 +15,8 @@ A standard-library HTTP server with **zero runtime dependencies**.
 | Method | Path | Body | Success |
 |---|---|---|---|
 | GET | `/health` | none | status and available strategies |
+| GET | `/ready` | none | readiness of the orchestrator |
+| GET | `/metrics` | none | per-route request, error, and latency metrics (Prometheus text) |
 | POST | `/sweep` | `{"count"?}` | best loss and resource for each strategy |
 | POST | `/importance` | `{"count"?}` | parameters ranked by variance explained |
 | POST | `/pareto` | `{"points": [[...], ...]}` | the Pareto front and the dominated set |

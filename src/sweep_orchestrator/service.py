@@ -17,14 +17,16 @@ Endpoints
 from __future__ import annotations
 
 import json
+import time
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
 from sweep_orchestrator.data import final_loss, sample_configurations
 from sweep_orchestrator.evaluation import ground_truth_best, run_evaluation
 from sweep_orchestrator.importance import Observation, parameter_importance
+from sweep_orchestrator.observability import ServiceMetrics
 from sweep_orchestrator.pareto import MultiObjectivePoint, pareto_front
 
 JsonObject = dict[str, Any]
@@ -37,6 +39,7 @@ class SweepService:
     """Runs sweeps, importance analysis, and Pareto fronts over bundled problems."""
 
     strategies: tuple[str, ...] = ("full (no pruning)", "median pruning", "successive halving")
+    metrics: ServiceMetrics = field(default_factory=ServiceMetrics)
 
     def sweep(self, count: int) -> JsonObject:
         results = run_evaluation(count=count)
@@ -112,11 +115,9 @@ def _points(body: Mapping[str, Any]) -> list[list[float]]:
     return parsed
 
 
-def handle(
+def _route(
     method: str, path: str, body: Mapping[str, Any], service: SweepService
 ) -> tuple[int, JsonObject]:
-    """Pure request handler: route a request to a status code and payload."""
-
     if method == "GET" and path == "/health":
         return 200, {"status": "ok", "strategies": list(service.strategies)}
     if method == "POST" and path == "/sweep":
@@ -140,6 +141,21 @@ def handle(
     return 404, {"error": f"no route for {method} {path}"}
 
 
+def handle(
+    method: str, path: str, body: Mapping[str, Any], service: SweepService
+) -> tuple[int, JsonObject]:
+    """Route a request, recording per-route metrics, and return status and payload."""
+
+    if method == "GET" and path == "/ready":
+        return 200, {"status": "ready"}
+    start = time.perf_counter()
+    status, payload = _route(method, path, body, service)
+    service.metrics.observe(
+        f"{method} {path}", (time.perf_counter() - start) * 1000.0, error=status >= 400
+    )
+    return status, payload
+
+
 class _Handler(BaseHTTPRequestHandler):  # pragma: no cover - exercised over sockets
     service: SweepService
 
@@ -152,6 +168,14 @@ class _Handler(BaseHTTPRequestHandler):  # pragma: no cover - exercised over soc
         self.wfile.write(encoded)
 
     def do_GET(self) -> None:
+        if self.path == "/metrics":
+            body = self.service.metrics.render_prometheus().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; version=0.0.4")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         status, payload = handle("GET", self.path, {}, self.service)
         self._respond(status, payload)
 
