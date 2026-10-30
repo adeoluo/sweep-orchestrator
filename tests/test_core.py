@@ -56,6 +56,20 @@ def test_hyperband_runs_multiple_brackets() -> None:
     assert abs(result.best.configuration["x"] - 2.0) < 1.0
 
 
+def test_hyperband_bracket_count_matches_exact_powers() -> None:
+    # Regression: math.log(eta**k, eta) can be slightly below k (for example
+    # log(243, 3) == 4.999999999999999), which dropped the most aggressive
+    # bracket. For R = eta**k the run must have exactly k + 1 brackets.
+    def sampler(count: int) -> Sequence[Configuration]:
+        return _configs(count, seed=count)
+
+    for eta in (2, 3, 5, 10):
+        for k in range(0, 5):
+            max_resource = eta**k
+            result = hyperband(sampler, _objective, max_resource=max_resource, eta=eta)
+            assert len(result.brackets) == k + 1, (eta, k, max_resource)
+
+
 def test_hyperband_validates() -> None:
     with pytest.raises(ValueError):
         hyperband(lambda n: _configs(n), _objective, max_resource=9, eta=1)

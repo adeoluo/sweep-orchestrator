@@ -59,9 +59,9 @@ budgets; every trial is recorded in a **resumable store**; and **non-dominated s
 
 | Strategy | best loss | resource | savings |
 |---|---:|---:|---:|
-| full (no pruning) | 0.2021 | 729 | 1.00x |
-| median pruning | 0.2021 | 254 | **2.87x** |
-| successive halving | 0.2021 | 243 | **3.00x** |
+| full (no pruning) | 0.2021 | 243 | 1.00x |
+| median pruning | 0.2021 | 90 | **2.70x** |
+| successive halving | 0.2021 | 81 | **3.00x** |
 
 All three strategies find the **same optimal configuration**, but early stopping and
 multi-fidelity scheduling reach it at **about a third of the compute**. That is the whole
