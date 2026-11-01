@@ -68,6 +68,27 @@ multi-fidelity scheduling reach it at **about a third of the compute**. That is 
 point: when each evaluation is a training run, spending a third of the budget for the same
 result is the difference between a feasible sweep and an infeasible one.
 
+### Scale
+
+`benchmarks/scale.py` runs successive halving over progressively larger pools of synthetic
+configurations and reports wall-clock time, throughput, peak traced memory (`tracemalloc`), the
+simple regret of the selected configuration against the ground-truth best, and the compute saved
+versus a full no-pruning sweep. The scheduler finds the ground-truth best (regret 0) at a steady
+~3x compute saving across every pool size, and peak memory grows linearly with the pool.
+
+| configurations | seconds | configs/sec | peak MiB | regret | compute savings |
+|---:|---:|---:|---:|---:|---:|
+| 243 | 0.001 | ~200,000 | 0.16 | 0.0000 | 3.0x |
+| 729 | 0.014 | ~53,000 | 0.48 | 0.0000 | 3.0x |
+| 2,187 | 0.032 | ~69,000 | 1.47 | 0.0000 | 3.0x |
+| 6,561 | 0.087 | ~75,000 | 4.46 | 0.0000 | 3.0x |
+
+The 243-configuration throughput is sub-millisecond measurement noise. Honest caveat: the
+learning-curve objective is synthetic, this is a pure-Python from-scratch implementation, and it
+is **not** benchmarked against compiled numerical libraries; wall-clock and throughput were
+measured on a shared development machine and will vary. Reproduce with
+`uv run python benchmarks/scale.py`.
+
 ## Multi-objective and importance
 
 ```text
