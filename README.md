@@ -184,6 +184,12 @@ Hyperparameter importance and the Pareto front.
   <img src="docs/demo/importance.gif" alt="Hyperparameter importance and the Pareto front" width="860">
 </p>
 
+The HTTP service running the pruning comparison and a Pareto front.
+
+<p align="center">
+  <img src="docs/demo/http.gif" alt="The HTTP service running the pruning comparison and a Pareto front" width="860">
+</p>
+
 ## Design decisions
 
 - **Multi-fidelity, not full evaluation.** Early stopping is the single biggest compute saving
