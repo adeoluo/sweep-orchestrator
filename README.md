@@ -168,6 +168,22 @@ document, and the [case study](docs/CASE_STUDY.md) on running a sweep under a co
 A production-style stress benchmark (`uv run python benchmarks/stress.py`) reports throughput
 and p50/p95/p99 latency.
 
+### Demos
+
+Recorded from real runs with [vhs](https://github.com/charmbracelet/vhs); each tape is in `docs/demo/`.
+
+Successive halving and Hyperband against random search.
+
+<p align="center">
+  <img src="docs/demo/evaluate.gif" alt="Successive halving and Hyperband against random search" width="860">
+</p>
+
+Hyperparameter importance and the Pareto front.
+
+<p align="center">
+  <img src="docs/demo/importance.gif" alt="Hyperparameter importance and the Pareto front" width="860">
+</p>
+
 ## Design decisions
 
 - **Multi-fidelity, not full evaluation.** Early stopping is the single biggest compute saving
