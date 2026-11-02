@@ -1,16 +1,14 @@
 <h1 align="center">Sweep Orchestrator</h1>
 
 <p align="center">
-  <em>Distributed hyperparameter sweep orchestration built from scratch: multi-fidelity scheduling (successive halving and Hyperband), parallel early-stopping, multi-objective Pareto optimization, and hyperparameter importance analysis.</em>
+  <em>Hyperparameter sweep orchestration built from scratch: multi-fidelity scheduling (successive halving and Hyperband), parallel early stopping, multi-objective Pareto optimization, and hyperparameter importance analysis.</em>
 </p>
 
 <p align="center">
-  <a href="https://github.com/adeoluo/sweep-orchestrator/actions/workflows/ci.yml"><img alt="Continuous integration" src="https://github.com/adeoluo/sweep-orchestrator/actions/workflows/ci.yml/badge.svg"></a>
-  <img alt="Coverage" src="https://img.shields.io/badge/coverage-93%25-brightgreen">
+  <a href="https://github.com/adeoluo/sweep-orchestrator/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/adeoluo/sweep-orchestrator/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/adeoluo/sweep-orchestrator/releases"><img alt="Release" src="https://img.shields.io/github/v/release/adeoluo/sweep-orchestrator"></a>
   <img alt="Python" src="https://img.shields.io/badge/python-3.11%20%7C%203.12-blue">
-  <img alt="Type checked" src="https://img.shields.io/badge/mypy-strict-blue">
-  <img alt="Runtime dependencies" src="https://img.shields.io/badge/runtime%20deps-0-brightgreen">
-  <img alt="License" src="https://img.shields.io/badge/license-MIT-green">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green"></a>
 </p>
 
 ---
@@ -22,13 +20,12 @@ is *how to run many of them without wasting compute*. Evaluating every configura
 budget is enormously wasteful, because most are clearly losing after a fraction of their
 training. This project builds the **orchestration** side of tuning **from scratch**:
 multi-fidelity scheduling that stops losers early, a parallel runner, multi-objective
-optimization for conflicting goals, and post-hoc importance analysis - all with **zero runtime
-dependencies**. It is the systems-and-decisions complement to a sampler library.
+optimization for conflicting goals, and post-hoc importance analysis. It is the systems-and-decisions complement to a sampler library.
 
 ## Architecture
 
 <p align="center">
-  <img src="docs/architecture/architecture.svg" alt="System architecture" width="900">
+  <img src="docs/architecture/architecture.svg" alt="Architecture diagram" width="860">
 </p>
 
 The **parallel runner** evaluates configurations over steps and consults a **pruner** to stop
@@ -36,7 +33,7 @@ clear losers; **successive halving and Hyperband** promote only the best fractio
 budgets; every trial is recorded in a **resumable store**; and **non-dominated sorting** and
 **variance decomposition** turn the completed sweep into decisions. See the [ADRs](docs/adr/).
 
-## What it does
+### What it does
 
 - **Multi-fidelity scheduling.** Successive halving evaluates many configurations cheaply,
   keeps the best `1/eta`, multiplies the resource by `eta`, and repeats. Hyperband hedges over
@@ -50,6 +47,14 @@ budgets; every trial is recorded in a **resumable store**; and **non-dominated s
   hyperparameters actually mattered.
 - **Resumable store.** Every trial, pruned or complete, is recorded so a sweep can be resumed
   and analyzed.
+
+### Components
+
+- **successive_halving** / **hyperband** - multi-fidelity schedulers.
+- **pruning** / **runner** - the median pruner, the parallel runner, and the resumable store.
+- **pareto** - Pareto dominance, non-dominated sorting, and crowding distance.
+- **importance** - variance-decomposition parameter importance.
+- **evaluation** - the full-versus-pruned-versus-multi-fidelity comparison.
 
 ## Results
 
@@ -84,31 +89,10 @@ versus a full no-pruning sweep. The scheduler finds the ground-truth best (regre
 | 6,561 | 0.087 | ~75,000 | 4.46 | 0.0000 | 3.0x |
 
 The 243-configuration throughput is sub-millisecond measurement noise. Honest caveat: the
-learning-curve objective is synthetic, this is a pure-Python from-scratch implementation, and it
+learning-curve objective is synthetic, this is a from-scratch Python implementation, and it
 is **not** benchmarked against compiled numerical libraries; wall-clock and throughput were
 measured on a shared development machine and will vary. Reproduce with
 `uv run python benchmarks/scale.py`.
-
-## Multi-objective and importance
-
-```text
-$ python -m sweep_orchestrator pareto
-Pareto-optimal configurations (accuracy loss, latency):
-  config 0: (0.1, 0.9)      # most accurate, slowest
-  config 1: (0.25, 0.6)     # balanced
-  config 3: (0.8, 0.2)      # fastest, least accurate
-Dominated configurations: [4]
-
-$ python -m sweep_orchestrator importance
-parameter             explained variance
-----------------------------------------
-log_learning_rate                  0.6840
-depth                              0.1597
-```
-
-The Pareto front keeps the genuine tradeoffs and discards dominated configurations; the
-importance analysis correctly identifies the learning rate as the parameter that mattered
-most on the bundled problem.
 
 ## Quickstart
 
@@ -135,9 +119,32 @@ print(store.best().configuration, store.best().value)
 result = successive_halving(configs, objective_at_resource, min_resource=1, max_resource=9)
 ```
 
-## Running the service
+## Usage
 
-A dependency-free HTTP service exposes the orchestrator as a production-style JSON API:
+### Multi-objective and importance
+
+```text
+$ python -m sweep_orchestrator pareto
+Pareto-optimal configurations (accuracy loss, latency):
+  config 0: (0.1, 0.9)      # most accurate, slowest
+  config 1: (0.25, 0.6)     # balanced
+  config 3: (0.8, 0.2)      # fastest, least accurate
+Dominated configurations: [4]
+
+$ python -m sweep_orchestrator importance
+parameter             explained variance
+----------------------------------------
+log_learning_rate                  0.6840
+depth                              0.1597
+```
+
+The Pareto front keeps the genuine tradeoffs and discards dominated configurations; the
+importance analysis correctly identifies the learning rate as the parameter that mattered
+most on the bundled problem.
+
+### HTTP service
+
+A standard-library HTTP service exposes the orchestrator as a production-style JSON API:
 
 ```bash
 python -m sweep_orchestrator serve --port 8000
@@ -148,19 +155,12 @@ curl -s -X POST localhost:8000/importance -d '{"count": 64}'
 curl -s -X POST localhost:8000/pareto -d '{"points": [[0.1, 0.9], [0.5, 0.5], [0.9, 0.1]]}'
 ```
 
-See the [operations guide](docs/OPERATIONS.md), the [scaling and tradeoffs](docs/SCALING.md)
-The service also exposes `GET /ready` (readiness) and `GET /metrics` (per-route request, error, and latency metrics in Prometheus text format).
+The service also exposes `GET /ready` (readiness) and `GET /metrics` (per-route request,
+error, and latency metrics in Prometheus text format). See the
+[operations guide](docs/OPERATIONS.md), the [scaling and tradeoffs](docs/SCALING.md)
 document, and the [case study](docs/CASE_STUDY.md) on running a sweep under a compute budget.
 A production-style stress benchmark (`uv run python benchmarks/stress.py`) reports throughput
 and p50/p95/p99 latency.
-
-## Components
-
-- **successive_halving** / **hyperband** - multi-fidelity schedulers.
-- **pruning** / **runner** - the median pruner, the parallel runner, and the resumable store.
-- **pareto** - Pareto dominance, non-dominated sorting, and crowding distance.
-- **importance** - variance-decomposition parameter importance.
-- **evaluation** - the full-versus-pruned-versus-multi-fidelity comparison.
 
 ## Design decisions
 
@@ -170,6 +170,24 @@ and p50/p95/p99 latency.
 - **Pareto fronts for conflicting objectives.** Real tuning optimizes several objectives at
   once, so the orchestrator returns a front, not a single winner.
   ([ADR-0003](docs/adr/0003-multi-objective-pareto.md))
+
+## Testing
+
+```bash
+make lint        # ruff format --check and ruff check
+make type        # mypy src (strict)
+make test        # pytest
+make coverage    # pytest with an 80% coverage gate
+```
+
+The suite in `tests/` has 31 tests:
+
+- `test_core.py`: successive halving finding a good configuration at lower cost than full evaluation, Hyperband bracket counts, and argument validation.
+- `test_multi_objective.py`: Pareto dominance, non-dominated sorting layers, crowding-distance boundaries, and importance ranking the relevant parameter first.
+- `test_runner.py`: the median pruner (warmup and minimum peers), the runner with and without pruning, the parallel runner matching the sequential best, the pruning evaluation, and the CLI.
+- `test_service.py`: the HTTP routes through the handler layer (no socket), input validation, unknown routes, readiness, and metrics.
+
+CI (`.github/workflows/ci.yml`) runs format, lint, type check, and the coverage-gated tests on Python 3.11 and 3.12, then builds the package and the Docker image. CodeQL runs in `codeql.yml`.
 
 ## Responsible AI
 
@@ -193,5 +211,4 @@ and p50/p95/p99 latency.
 
 ## License
 
-[MIT](LICENSE). Part of an artificial intelligence engineering portfolio by
-[adeoluo](https://github.com/adeoluo).
+Released under the [MIT License](LICENSE).

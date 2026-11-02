@@ -1,57 +1,10 @@
----
-title: System Architecture - Sweep Orchestrator
-config:
-  theme: base
-  themeVariables:
-    fontFamily: "Inter, system-ui, sans-serif"
-    primaryColor: "#F8FAFC"
-    primaryBorderColor: "#1E293B"
-    primaryTextColor: "#1E293B"
-    lineColor: "#64748B"
-    clusterBkg: "#EEF2FF"
-    clusterBorder: "#94A3B8"
----
-flowchart TB
-    classDef edge     fill:#F59E0B,stroke:#1E293B,color:#1E293B,stroke-width:1px;
-    classDef core     fill:#6366F1,stroke:#1E293B,color:#ffffff,stroke-width:1px;
-    classDef data     fill:#10B981,stroke:#1E293B,color:#ffffff,stroke-width:1px;
-    classDef control  fill:#0EA5E9,stroke:#1E293B,color:#ffffff,stroke-width:1px;
-    classDef obs      fill:#CBD5E1,stroke:#1E293B,color:#1E293B,stroke-width:1px;
-
-    Client([Client]):::edge
-
-    subgraph Edge["Service layer (stdlib HTTP, stateless)"]
-        direction TB
-        Router["Router<br/>/health | /sweep | /importance | /pareto"]:::core
-        Validate["Validation<br/>bounds: count, points"]:::control
-    end
-
-    subgraph Schedule["Multi-fidelity scheduling"]
-        direction TB
-        Runner["Parallel runner<br/>worker pool"]:::core
-        Pruner["Pruner<br/>median early stopping"]:::control
-        Halving["Successive halving / Hyperband<br/>promote the best fraction"]:::core
-    end
-
-    subgraph Analyze["Decision support"]
-        direction TB
-        Pareto["Non-dominated sorting<br/>Pareto front + crowding"]:::core
-        Importance["Variance decomposition<br/>parameter importance"]:::core
-    end
-
-    Store[(Resumable sweep store<br/>every trial, pruned or complete)]:::data
-    Result["Best configuration<br/>+ compute spent"]:::obs
-
-    Client -->|JSON request| Router --> Validate
-    Validate -->|configurations| Runner
-    Runner -->|intermediate values| Pruner
-    Pruner -->|stop clear losers| Runner
-    Runner -->|survivors| Halving
-    Runner --> Store
+flowchart LR
+    Client([Client]) --> Router[HTTP router]
+    Router --> Runner[Parallel runner]
+    Runner <-->|intermediate values| Pruner[Median pruner]
+    Runner --> Halving[Successive halving and Hyperband]
+    Runner --> Store[(Resumable trial store)]
     Halving --> Store
-    Store --> Pareto
-    Store --> Importance
-    Store -->|best| Result
-    Pareto --> Result
-    Importance --> Result
-    Result --> Router -->|JSON response| Client
+    Store --> Pareto[Pareto front]
+    Store --> Importance[Parameter importance]
+    Store --> Best[Best configuration]

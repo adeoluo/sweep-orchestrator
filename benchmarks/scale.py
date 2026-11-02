@@ -73,7 +73,7 @@ def measure(size: int, *, seed: int = _SEED) -> ScalePoint:
 
 
 def main() -> None:
-    print("Synthetic learning-curve objective; a pure-Python, from-scratch scheduler.")
+    print("Synthetic learning-curve objective; a from-scratch Python scheduler.")
     print("Wall-clock is not competitive with compiled numerical libraries.")
     print("Regret is the selected configuration's loss minus the ground-truth best.\n")
 

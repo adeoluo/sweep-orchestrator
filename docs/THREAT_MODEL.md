@@ -16,7 +16,7 @@
 | Unbounded compute | Huge configuration count | Resource exhaustion | Count bounded (service caps at 243) |
 | Malformed objective vectors | Ragged or non-numeric points | Crash | Point validation (shape and type) |
 | Irreproducible sweeps | Unseeded sampling | Flaky numbers | Deterministic sampling and single-worker mode |
-| Supply-chain compromise | Malicious dependency | Code execution | Zero runtime dependencies; Dependabot and CodeQL in continuous integration |
+| Supply-chain compromise | Malicious dependency | Code execution | No third-party runtime packages; Dependabot and CodeQL in continuous integration |
 
 ## Residual risk
 

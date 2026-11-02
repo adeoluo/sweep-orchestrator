@@ -1,4 +1,4 @@
-"""A dependency-free HTTP service exposing the sweep orchestrator.
+"""A standard-library HTTP service exposing the sweep orchestrator.
 
 The service runs a sweep over the bundled learning-curve problem with a chosen
 strategy, reports the best configuration and the compute spent, or returns a

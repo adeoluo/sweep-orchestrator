@@ -8,7 +8,7 @@ The operational contract of the sweep service.
 uv run python -m sweep_orchestrator serve --host 0.0.0.0 --port 8000
 ```
 
-A standard-library HTTP server with **zero runtime dependencies**.
+A standard-library HTTP server.
 
 ## Endpoints
 
