@@ -1,10 +1,58 @@
-flowchart LR
-    Client([Client]) --> Router[HTTP router]
-    Router --> Runner[Parallel runner]
-    Runner <-->|intermediate values| Pruner[Median pruner]
-    Runner --> Halving[Successive halving and Hyperband]
-    Runner --> Store[(Resumable trial store)]
-    Halving --> Store
-    Store --> Pareto[Pareto front]
-    Store --> Importance[Parameter importance]
-    Store --> Best[Best configuration]
+flowchart TD
+    classDef edge     fill:#F59E0B,stroke:#1E293B,color:#1E293B,stroke-width:1px;
+    classDef core     fill:#6366F1,stroke:#1E293B,color:#ffffff,stroke-width:1px;
+    classDef data     fill:#10B981,stroke:#1E293B,color:#ffffff,stroke-width:1px;
+    classDef control  fill:#0EA5E9,stroke:#1E293B,color:#ffffff,stroke-width:1px;
+    classDef obs      fill:#CBD5E1,stroke:#1E293B,color:#1E293B,stroke-width:1px;
+
+    Client(["HTTP client"]):::edge
+    CLI(["CLI<br/>evaluate | importance | pareto | serve"]):::edge
+    Lib(["Python library API"]):::edge
+
+    subgraph Edge["Interfaces (stdlib HTTP, stateless)"]
+        direction TB
+        Router["Router<br/>/health | /ready | /sweep | /importance | /pareto"]:::core
+        Validate["Validation<br/>count range, equal-length numeric points"]:::control
+    end
+
+    subgraph Sched["Scheduling (multi-fidelity, deterministic)"]
+        direction TB
+        Problem[("Bundled sweep problem<br/>sampled configs, learning curves")]:::data
+        Runner["Sweep runner<br/>thread pool, per-step reports"]:::core
+        Pruner{{"Median pruner<br/>warmup, min peers"}}:::control
+        Hyperband["Hyperband<br/>brackets over eta"]:::core
+        Halving["Successive halving<br/>keep 1/eta, grow resource"]:::core
+    end
+
+    subgraph Analysis["Trial state and analysis"]
+        direction TB
+        Store[("Resumable trial store<br/>history, pruned flag")]:::data
+        Importance["Parameter importance<br/>variance decomposition"]:::core
+        Pareto["Pareto front<br/>non-dominated sort + crowding"]:::core
+    end
+
+    subgraph Eval["Evaluation and observability"]
+        direction TB
+        Compare["Strategy comparison<br/>best loss vs step-evaluations"]:::obs
+        Metrics["Route metrics<br/>Prometheus GET /metrics"]:::obs
+    end
+
+    Client -->|JSON request| Router --> Validate
+    Validate -->|POST /sweep| Runner
+    Validate -->|POST /sweep| Halving
+    Validate -->|POST /importance| Importance
+    Validate -->|POST /pareto| Pareto
+    CLI -->|evaluate| Runner
+    CLI -->|importance| Importance
+    CLI -->|pareto| Pareto
+    Lib -->|hyperband| Hyperband
+    Hyperband -->|one bracket per aggressiveness| Halving
+    Problem -.->|learning curves| Runner
+    Problem -.->|configurations| Halving
+    Problem -.->|final losses| Importance
+    Runner -->|intermediate value| Pruner
+    Pruner -.->|stop or continue| Runner
+    Runner -->|trial records| Store
+    Store -->|best + resource, full and pruned| Compare
+    Halving -->|best + total resource| Compare
+    Router -.-> Metrics

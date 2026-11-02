@@ -28,10 +28,16 @@ optimization for conflicting goals, and post-hoc importance analysis. It is the 
   <img src="docs/architecture/architecture.svg" alt="Architecture diagram" width="860">
 </p>
 
-The **parallel runner** evaluates configurations over steps and consults a **pruner** to stop
-clear losers; **successive halving and Hyperband** promote only the best fraction to higher
-budgets; every trial is recorded in a **resumable store**; and **non-dominated sorting** and
-**variance decomposition** turn the completed sweep into decisions. See the [ADRs](docs/adr/).
+<sub>Legend: amber = entry points and external systems, indigo = core logic, green = data and state, blue = validation and control, grey = observability and outputs.</sub>
+
+Requests arrive through the CLI, the library API, or the validated HTTP routes. The **parallel
+runner** evaluates configurations from the bundled problem over steps and consults a **median
+pruner** to stop clear losers; **successive halving** (and **Hyperband**, which runs one
+bracket per aggressiveness level) promotes only the best fraction to higher budgets; every
+runner trial is recorded in a **resumable store**; the strategy comparison reports best loss
+against compute spent; and **non-dominated sorting** and **variance decomposition** turn the
+sweep into decisions. Every route is counted in the Prometheus metrics. See the
+[ADRs](docs/adr/).
 
 ### What it does
 
