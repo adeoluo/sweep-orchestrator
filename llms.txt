@@ -1,0 +1,40 @@
+# Sweep Orchestrator
+
+> Hyperparameter sweep orchestration built from scratch: multi-fidelity scheduling (successive halving and Hyperband), parallel early stopping, multi-objective Pareto optimization, and hyperparameter importance analysis.
+
+Languages: Python. License: MIT. Source: https://github.com/adeoluo/sweep-orchestrator
+
+## Docs
+
+- [README](https://github.com/adeoluo/sweep-orchestrator/blob/main/README.md): motivation, architecture, results, quickstart, usage, design decisions, testing, responsible ai, limitations, roadmap
+- [AGENTS.md](https://github.com/adeoluo/sweep-orchestrator/blob/main/AGENTS.md): layout, commands and conventions for changing the code
+- [Architecture diagram](https://github.com/adeoluo/sweep-orchestrator/blob/main/docs/architecture/architecture.mmd): Mermaid source of the component diagram
+- [End-to-End Case Study - A Sweep Under a Compute Budget](https://github.com/adeoluo/sweep-orchestrator/blob/main/docs/CASE_STUDY.md)
+- [Data Card - Sweep Orchestrator](https://github.com/adeoluo/sweep-orchestrator/blob/main/docs/DATA_CARD.md)
+- [Definition of Done](https://github.com/adeoluo/sweep-orchestrator/blob/main/docs/DEFINITION_OF_DONE.md)
+- [Evaluation Report - Sweep Orchestrator](https://github.com/adeoluo/sweep-orchestrator/blob/main/docs/EVALUATION_REPORT.md)
+- [System Card - Sweep Orchestrator](https://github.com/adeoluo/sweep-orchestrator/blob/main/docs/MODEL_CARD.md)
+- [Operations Guide - Sweep Orchestrator](https://github.com/adeoluo/sweep-orchestrator/blob/main/docs/OPERATIONS.md)
+- [Scaling and Design Tradeoffs - Sweep Orchestrator](https://github.com/adeoluo/sweep-orchestrator/blob/main/docs/SCALING.md)
+- [Threat Model - Sweep Orchestrator](https://github.com/adeoluo/sweep-orchestrator/blob/main/docs/THREAT_MODEL.md)
+- [ADR-0001: Record architecture decisions](https://github.com/adeoluo/sweep-orchestrator/blob/main/docs/adr/0001-record-architecture-decisions.md)
+- [ADR-0002: Multi-fidelity scheduling as the core](https://github.com/adeoluo/sweep-orchestrator/blob/main/docs/adr/0002-multi-fidelity-scheduling.md)
+- [ADR-0003: Pareto fronts for conflicting objectives](https://github.com/adeoluo/sweep-orchestrator/blob/main/docs/adr/0003-multi-objective-pareto.md)
+- [ADR-NNNN: <short title>](https://github.com/adeoluo/sweep-orchestrator/blob/main/docs/adr/template.md)
+- [Changelog](https://github.com/adeoluo/sweep-orchestrator/blob/main/CHANGELOG.md): release history
+
+## Source
+
+- [src/sweep_orchestrator/__init__.py](https://github.com/adeoluo/sweep-orchestrator/blob/main/src/sweep_orchestrator/__init__.py): Sweep Orchestrator - multi-fidelity scheduling and multi-objective sweeps from scratch.
+- [src/sweep_orchestrator/cli.py](https://github.com/adeoluo/sweep-orchestrator/blob/main/src/sweep_orchestrator/cli.py): Command line interface for the sweep orchestrator.
+- [src/sweep_orchestrator/data.py](https://github.com/adeoluo/sweep-orchestrator/blob/main/src/sweep_orchestrator/data.py): A bundled, deterministic sweep problem used for demonstrations and evaluation.
+- [src/sweep_orchestrator/evaluation.py](https://github.com/adeoluo/sweep-orchestrator/blob/main/src/sweep_orchestrator/evaluation.py): Measure what pruning and multi-fidelity scheduling save.
+- [src/sweep_orchestrator/hyperband.py](https://github.com/adeoluo/sweep-orchestrator/blob/main/src/sweep_orchestrator/hyperband.py): Hyperband: hedging over how aggressively to prune.
+- [src/sweep_orchestrator/importance.py](https://github.com/adeoluo/sweep-orchestrator/blob/main/src/sweep_orchestrator/importance.py): Hyperparameter importance via variance decomposition.
+- [src/sweep_orchestrator/observability.py](https://github.com/adeoluo/sweep-orchestrator/blob/main/src/sweep_orchestrator/observability.py): In-process request metrics for the HTTP service.
+- [src/sweep_orchestrator/pareto.py](https://github.com/adeoluo/sweep-orchestrator/blob/main/src/sweep_orchestrator/pareto.py): Multi-objective optimization: Pareto fronts over conflicting objectives.
+- [src/sweep_orchestrator/pruning.py](https://github.com/adeoluo/sweep-orchestrator/blob/main/src/sweep_orchestrator/pruning.py): Early-stopping pruners for the parallel runner.
+- [src/sweep_orchestrator/runner.py](https://github.com/adeoluo/sweep-orchestrator/blob/main/src/sweep_orchestrator/runner.py): The parallel sweep runner: execute trials concurrently with pruning.
+- [src/sweep_orchestrator/service.py](https://github.com/adeoluo/sweep-orchestrator/blob/main/src/sweep_orchestrator/service.py): A standard-library HTTP service exposing the sweep orchestrator.
+- [src/sweep_orchestrator/successive_halving.py](https://github.com/adeoluo/sweep-orchestrator/blob/main/src/sweep_orchestrator/successive_halving.py): Successive halving: the core multi-fidelity primitive.
+- [src/sweep_orchestrator/types.py](https://github.com/adeoluo/sweep-orchestrator/blob/main/src/sweep_orchestrator/types.py): Core types for sweeps: configurations, trials, and objective callables.
